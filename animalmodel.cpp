@@ -2,7 +2,18 @@
 #include <QDebug>
 #include <QString>
 
-AnimalModel::AnimalModel(QObject *parent) : QAbstractListModel(parent) {}
+AnimalModel::AnimalModel(QObject *parent) : QAbstractListModel(parent)
+{
+    m_dbName = "MyTest.db";
+    m_table = "animal_info";
+
+    QMap<QString, QString> map;
+
+    map.insert("done", "bool");
+    map.insert("type", "QString");
+    map.insert("size", "QString");
+    m_db.initDb(m_dbName, m_table, map);
+}
 
 void AnimalModel::m_pushdata(const bool &done, const QString &animalType, const QString &animalSize)
 {
@@ -19,14 +30,24 @@ void AnimalModel::m_insert(int index,
     beginInsertRows(QModelIndex(), index, index);
     m_animals.insert(m_animals.begin() + index, a);
     endInsertRows();
+
+    m_map.insert("done", done);
+    m_map.insert("type", animalType);
+    m_map.insert("size", animalSize);
+    m_db.insertItem(m_table, m_map);
+    m_map.clear();
 }
 
 void AnimalModel::m_removeOne(int index)
 {
     //    qDebug() << index; //QString::number(index);
+    Animal animal = m_animals.takeAt(index);
+    qDebug() << animal.animalType();
     beginRemoveRows(QModelIndex(), index, index);
     m_animals.erase(m_animals.begin() + index);
     endRemoveRows();
+    //int i = int(m_animals.begin() + index);
+
 }
 
 void AnimalModel::m_removeCompleted()

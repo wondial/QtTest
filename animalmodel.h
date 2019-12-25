@@ -3,6 +3,7 @@
 
 #include <QAbstractListModel>
 #include "animal.h"
+#include "sqlservice.h"
 
 class AnimalModel : public QAbstractListModel
 {
@@ -41,6 +42,11 @@ protected:
 
 private:
     QList<Animal> m_animals;
+    SqlService m_db;
+    QString m_table;
+    QString m_dbName;
+    QVariantMap m_map;
+
 };
 
 #endif // ANIMALMODEL_H

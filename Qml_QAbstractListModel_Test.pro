@@ -16,7 +16,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         animal.cpp \
         animalmodel.cpp \
-        main.cpp
+        main.cpp \
+        sqlservice.cpp
 
 RESOURCES += qml.qrc
 
@@ -33,4 +34,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     animal.h \
-    animalmodel.h
+    animalmodel.h \
+    sqlservice.h
