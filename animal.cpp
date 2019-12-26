@@ -1,7 +1,8 @@
 #include "animal.h"
 
-Animal::Animal(const bool &done, const QString &type, const QString &size)
-    : m_done(done), m_animalType(type), m_animalSize(size) {}
+Animal::Animal(const int &id, const bool &done, const QString &type, const QString &size)
+    : m_animalId(id), m_done(done), m_animalType(type), m_animalSize(size)
+{}
 
 QString Animal::animalType() const
 {
@@ -33,4 +34,12 @@ void Animal::setDone(bool done)
     m_done = done;
 }
 
+int Animal::animalId() const
+{
+    return m_animalId;
+}
 
+void Animal::setAnimalId(int animalId)
+{
+    m_animalId = animalId;
+}

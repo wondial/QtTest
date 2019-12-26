@@ -4,21 +4,21 @@
 
 AnimalModel::AnimalModel(QObject *parent) : QAbstractListModel(parent)
 {
-    m_dbName = "MyTest.db";
-    m_table = "animal_info";
 
-    QMap<QString, QString> map;
-
-    map.insert("done", "bool");
-    map.insert("type", "QString");
-    map.insert("size", "QString");
-    m_db.initDb(m_dbName, m_table, map);
 }
 
 void AnimalModel::m_pushdata(const bool &done, const QString &animalType, const QString &animalSize)
 {
-    Animal a(done, animalType, animalSize);
+    m_map.insert("done", done);
+    m_map.insert("type", animalType);
+    m_map.insert("size", animalSize);
+
+    QVariant id = m_db.insertItem(m_table, m_map);
+    int i = id.value<int>();
+    Animal a(i, done, animalType, animalSize);
     m_animals.append(a);
+
+    m_map.clear();
 }
 
 void AnimalModel::m_insert(int index,
@@ -26,15 +26,16 @@ void AnimalModel::m_insert(int index,
                            const QString &animalType,
                            const QString &animalSize)
 {
-    Animal a(done, animalType, animalSize);
+    m_map.insert("done", done);
+    m_map.insert("type", animalType);
+    m_map.insert("size", animalSize);
+    QVariant id = m_db.insertItem(m_table, m_map);
+    int i = id.value<int>();
+    Animal a(i, done, animalType, animalSize);
     beginInsertRows(QModelIndex(), index, index);
     m_animals.insert(m_animals.begin() + index, a);
     endInsertRows();
 
-    m_map.insert("done", done);
-    m_map.insert("type", animalType);
-    m_map.insert("size", animalSize);
-    m_db.insertItem(m_table, m_map);
     m_map.clear();
 }
 
@@ -46,18 +47,24 @@ void AnimalModel::m_removeOne(int index)
     beginRemoveRows(QModelIndex(), index, index);
     m_animals.erase(m_animals.begin() + index);
     endRemoveRows();
-    //int i = int(m_animals.begin() + index);
 
+    m_map.insert("id", animal.animalId());
+    //    m_map.insert("done", animal.done());
+    //    m_map.insert("type", animal.animalType());
+    //    m_map.insert("size", animal.animalSize());
+    m_db.deleteItem(m_table, m_map);
+    m_map.clear();
 }
 
 void AnimalModel::m_removeCompleted()
 {
     for (int i = 0; i < m_animals.size();) {
         if (m_animals.at(i).done()) {
+            m_map.insert("id", m_animals.at(i).animalId());
+            m_db.deleteItem(m_table, m_map);
+            m_map.clear();
             beginRemoveRows(QModelIndex(), i, i);
-
             m_animals.removeAt(i);
-
             endRemoveRows();
         } else {
             ++i;
@@ -76,13 +83,48 @@ void AnimalModel::m_clear()
 
 void AnimalModel::m_addAnimal()
 {
-    Animal animal(false, "", "");
+    m_map.insert("done", false);
+    m_map.insert("type", "");
+    m_map.insert("size", "");
+    QVariant id = m_db.insertItem(m_table, m_map);
+
+    int i = id.value<int>();
+    Animal animal(i, false, "", "");
     beginInsertRows(QModelIndex(), m_animals.size(), m_animals.size());
     //    qDebug() << "m_animals.size:" << m_animals.size ();
     m_animals.append(animal);
     //    qDebug() << "m_animals.size:" << m_animals.size ();
     endInsertRows();
+
+    m_map.clear();
 }
+
+void AnimalModel::initDb()
+{
+    m_dbName = "MyTest.db";
+    m_table = "animal_info";
+
+    QMap<QString, QString> map;
+    map.insert("done", "boolean");
+    map.insert("id", "integer PRIMARY KEY");
+
+    map.insert("type", "QString");
+    map.insert("size", "QString");
+    m_db.initDb(m_dbName, m_table, map);
+}
+
+//void AnimalModel::m_updateAnimal(const QModelIndex &index,
+//                                 const bool &done,
+//                                 const QString &animalType,
+//                                 const QString &animalSize)
+//{
+//    m_map.insert("id", m_animals[index.row()].animalId());
+//    m_map.insert("done", done);
+//    m_map.insert("type", animalType);
+//    m_map.insert("size", animalSize);
+//    m_db.updateItem(m_table, m_map, "id");
+//    m_map.clear();
+//}
 
 int AnimalModel::rowCount(const QModelIndex &parent) const
 {
@@ -122,13 +164,13 @@ bool AnimalModel::setData(const QModelIndex &index, const QVariant &value, int r
     //    qDebug() << "index:" << index.row();
     //    qDebug() << "role:" << role;
 
-    Animal animal(false, "", "");
+    Animal animal(oldanimal.animalId(), false, "", "");
     bool flag = false;
 
     switch (role) {
     case Done:
         if (animalDone != value.toBool() && (animalType != "" || animalSize != "")) {
-            Animal t_animal(value.toBool(), animalType, animalSize);
+            Animal t_animal(oldanimal.animalId(), value.toBool(), animalType, animalSize);
             animal = t_animal;
             flag = true;
             //qDebug() << "here:" << role;
@@ -136,14 +178,14 @@ bool AnimalModel::setData(const QModelIndex &index, const QVariant &value, int r
         break;
     case TypeRole:
         if (animalType != value.toString()) {
-            Animal t_animal(animalDone, value.toString(), animalSize);
+            Animal t_animal(oldanimal.animalId(), animalDone, value.toString(), animalSize);
             animal = t_animal;
             flag = true;
         }
         break;
     case SizeRole:
         if (animalSize != value.toString()) {
-            Animal t_animal(animalDone, animalType, value.toString());
+            Animal t_animal(oldanimal.animalId(), animalDone, animalType, value.toString());
             animal = t_animal;
             flag = true;
         }
@@ -151,10 +193,18 @@ bool AnimalModel::setData(const QModelIndex &index, const QVariant &value, int r
     }
 
     if (flag) {
-        //        qDebug() << "New:" << animal.done() << "  " << animal.animalType() << "  "
-        //                 << animal.animalSize();
+        //qDebug() << "New:" << animal.done() << "  " << animal.animalType() << "  "
+        //<< animal.animalSize();
 
         m_animals.replace(index.row(), animal);
+
+        m_map.insert("id", animal.animalId());
+        m_map.insert("done", animal.done ());
+        m_map.insert("type", animal.animalType ());
+        m_map.insert("size", animal.animalSize ());
+        m_db.updateItem(m_table, m_map, "id");
+        m_map.clear();
+
         flag = false;
 
         return true;

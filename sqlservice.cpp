@@ -63,7 +63,7 @@ bool SqlService::createTable(QString table, QMap<QString, QString> map)
     return this->exec(NEWTABLE_SQL);
 }
 
-bool SqlService::insertItem(QString table, QVariantMap map)
+QVariant SqlService::insertItem(QString table, QVariantMap map)
 {
     QMap<QString, QString> tableContentMap;
 
@@ -101,10 +101,12 @@ bool SqlService::insertItem(QString table, QVariantMap map)
         ii.next();
         m_sqlQuery.addBindValue(map[ii.key()]);
     }
-    return this->exec();
+    this->exec();
+    return m_sqlQuery.lastInsertId ();
+
 }
 
-bool SqlService::updateItem(QString table, QString name, QVariantMap map)
+bool SqlService::updateItem(QString table,QVariantMap map, QString name)
 {
     QString content = QString("update %1 set ").arg(table);
     QMapIterator<QString, QVariant> i(map);

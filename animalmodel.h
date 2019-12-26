@@ -29,7 +29,8 @@ public:
     Q_INVOKABLE void m_clear();
     //外部接口 C++调用 添加数据
     Q_INVOKABLE void m_addAnimal();
-
+    Q_INVOKABLE void initDb();
+    //Q_INVOKABLE void m_updateAnimal(const QModelIndex &index, const bool &done, const QString &animalType, const QString &animalSize);
     // Basic functionality:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;

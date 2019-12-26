@@ -1,9 +1,9 @@
 #ifndef SQLSERVICE_H
 #define SQLSERVICE_H
 #include <QSqlError>
+#include <QSqlField>
 #include <QSqlQuery>
 #include <QSqlRecord>
-#include <QSqlField>
 #include <QString>
 #include <QVariantMap>
 
@@ -22,11 +22,10 @@ public:
     bool exec(const QString &query);
     bool exec();
 
-
     bool openDatabase(QString name, const QString &type = "QSQLITE");
     bool createTable(QString table, QMap<QString, QString> map);
-    bool insertItem(QString table, QVariantMap map);
-    bool updateItem(QString table, QString name, QVariantMap map);
+    QVariant insertItem(QString table, QVariantMap map);
+    bool updateItem(QString table, QVariantMap map, QString name = "id");
     bool deleteItem(QString table, QVariantMap map);
     QVariantMap findItem(QString table, QVariantMap map);
     QVector<QVariantMap> getItems(int pageFrom, int pageNum);
