@@ -30,7 +30,7 @@ public:
     QVariantMap findItem(QString table, QVariantMap map);
     QVector<QVariantMap> getItems(int pageFrom, int pageNum);
     QVector<QVariantMap> getItems();
-    void initDb(QString dbname, QString table, QMap<QString, QString> map);
+    bool initDb(QString dbname, QString table, QMap<QString, QString> map);
 
     QString getLastErrors() const;
 

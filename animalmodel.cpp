@@ -48,7 +48,7 @@ void AnimalModel::m_removeOne(int index)
     m_animals.erase(m_animals.begin() + index);
     endRemoveRows();
 
-    m_map.insert("id", animal.animalId());
+    m_map.insert("animalid", animal.animalId());
     //    m_map.insert("done", animal.done());
     //    m_map.insert("type", animal.animalType());
     //    m_map.insert("size", animal.animalSize());
@@ -56,20 +56,19 @@ void AnimalModel::m_removeOne(int index)
     m_map.clear();
 }
 
-void AnimalModel::m_removeCompleted()
-{
-    for (int i = 0; i < m_animals.size();) {
-        if (m_animals.at(i).done()) {
-            m_map.insert("id", m_animals.at(i).animalId());
-            m_db.deleteItem(m_table, m_map);
-            m_map.clear();
-            beginRemoveRows(QModelIndex(), i, i);
-            m_animals.removeAt(i);
-            endRemoveRows();
-        } else {
-            ++i;
-        }
+void AnimalModel::m_removeCompleted() {
+  for (int i = 0; i < m_animals.size();) {
+    if (m_animals.at(i).done() == 1) {
+      m_map.insert("animalid", m_animals.at(i).animalId());
+      m_db.deleteItem(m_table, m_map);
+      m_map.clear();
+      beginRemoveRows(QModelIndex(), i, i);
+      m_animals.removeAt(i);
+      endRemoveRows();
+    } else {
+      ++i;
     }
+  }
 }
 
 void AnimalModel::m_clear()
@@ -105,26 +104,38 @@ void AnimalModel::initDb()
     m_table = "animal_info";
 
     QMap<QString, QString> map;
+
+    map.insert("animalid", "integer PRIMARY KEY AutoIncrement");
     map.insert("done", "boolean");
-    map.insert("id", "integer PRIMARY KEY");
+    map.insert("size", "varchar");
+    map.insert("type", "varchar");
 
-    map.insert("type", "QString");
-    map.insert("size", "QString");
-    m_db.initDb(m_dbName, m_table, map);
+    if (m_db.initDb(m_dbName, m_table, map)) {
+      m_insert(0, false, "Wolf", "Medium");
+      m_insert(1, true, "Polar bear", "Large");
+      m_insert(2, false, "Quoll", "Small");
+    }
+
+    Animal a(0, false, "", "");
+    QVector<QVariantMap> vector = m_db.getItems();
+    for (int i = 0; i < vector.size(); ++i) {
+      //      QMapIterator<QString, QVariant> mi(vector.at(i));
+      //      while (mi.hasNext()) {
+      //        mi.next();
+      //        switch (mi.key()) {
+      //        case "animalid":
+      //          a.setAnimalId(mi.value().toInt());
+      //          break;
+      //        case "done":
+      //        case "type":
+      //        case "size":
+      //          break;
+      //        default:
+      //          break;
+      //        }
+      //      }
+    }
 }
-
-//void AnimalModel::m_updateAnimal(const QModelIndex &index,
-//                                 const bool &done,
-//                                 const QString &animalType,
-//                                 const QString &animalSize)
-//{
-//    m_map.insert("id", m_animals[index.row()].animalId());
-//    m_map.insert("done", done);
-//    m_map.insert("type", animalType);
-//    m_map.insert("size", animalSize);
-//    m_db.updateItem(m_table, m_map, "id");
-//    m_map.clear();
-//}
 
 int AnimalModel::rowCount(const QModelIndex &parent) const
 {
@@ -198,11 +209,11 @@ bool AnimalModel::setData(const QModelIndex &index, const QVariant &value, int r
 
         m_animals.replace(index.row(), animal);
 
-        m_map.insert("id", animal.animalId());
+        m_map.insert("animalid", animal.animalId());
         m_map.insert("done", animal.done ());
         m_map.insert("type", animal.animalType ());
         m_map.insert("size", animal.animalSize ());
-        m_db.updateItem(m_table, m_map, "id");
+        m_db.updateItem(m_table, m_map, "animalid");
         m_map.clear();
 
         flag = false;

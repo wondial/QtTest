@@ -1,13 +1,12 @@
 #include "sqlservice.h"
+#include <QDebug>
 
-SqlService::SqlService()
-{
-
-}
+SqlService::SqlService(){}
 
 void SqlService::setLastError(const QString &lastError)
 {
     m_lastError = lastError;
+    qDebug() << m_lastError;
 }
 
 bool SqlService::prepareSql(const QString &querySql)
@@ -39,50 +38,55 @@ bool SqlService::openDatabase(QString dbname, const QString &type)
         return false;
     }
     m_sqlQuery = QSqlQuery(m_sqlDatabase);
+    qDebug() << "Open database success!";
     return true;
 }
 
-bool SqlService::createTable(QString table, QMap<QString, QString> map)
-{
-    QStringList tables = m_sqlDatabase.tables();
-    if (m_sqlDatabase.contains(table)) {
-        return false;
-    }
+bool SqlService::createTable(QString table, QMap<QString, QString> map) {
+  QStringList tables = m_sqlDatabase.tables();
+  if (m_sqlDatabase.contains(table)) {
+    return false;
+  }
 
-    QString NEWTABLE_SQL = QString("create table %1 (").arg(table);
-    QMapIterator<QString, QString> tmp(map);
-    while (tmp.hasNext()) {
-        tmp.next();
-        NEWTABLE_SQL.append(QString("%1 %2").arg(tmp.key()).arg(tmp.value()));
-        if (tmp.hasNext()) {
-            NEWTABLE_SQL.append(",");
-        }
-        NEWTABLE_SQL.append(")");
+  QString NEWTABLE_SQL = QString("CREATE TABLE IF NOT EXISTS %1 (").arg(table);
+  QMapIterator<QString, QString> tmp(map);
+  while (tmp.hasNext()) {
+    tmp.next();
+    NEWTABLE_SQL.append(QString("%1 %2").arg(tmp.key()).arg(tmp.value()));
+    if (tmp.hasNext()) {
+      NEWTABLE_SQL.append(",");
     }
-
-    return this->exec(NEWTABLE_SQL);
+  }
+  NEWTABLE_SQL.append(")");
+  qDebug() << NEWTABLE_SQL;
+  return this->exec(NEWTABLE_SQL);
 }
 
 QVariant SqlService::insertItem(QString table, QVariantMap map)
 {
     QMap<QString, QString> tableContentMap;
 
-    QStringList tables = m_sqlDatabase.tables();
-    if (!m_sqlDatabase.contains(table)) {
-        setLastError(QString("没有发现 %1 表!").arg(table));
-        return false;
+    // QStringList tables = m_sqlDatabase.tables();
+
+    bool b = m_sqlQuery.exec(QString("select count(*) from sqlite_master where "
+                                     "type='table' and name='%1'")
+                                 .arg(table));
+    if (!b) {
+      setLastError(QString("没有发现 %1 表!").arg(table));
+      return false;
     }
 
     tableContentMap = getTableInfo(table);
+
     if (tableContentMap.isEmpty())
-        return false;
+      return false;
 
     QString INSERTITEM_SQL = QString("insert into %1 (").arg(table);
     QString values = QString("values (");
     QMapIterator<QString, QString> i(tableContentMap);
     while (i.hasNext()) {
         i.next();
-        INSERTITEM_SQL.append(QString().arg(i.key()));
+        INSERTITEM_SQL.append(QString("%1").arg(i.key()));
         values.append("?");
         if (i.hasNext()) {
             INSERTITEM_SQL.append(",");
@@ -92,15 +96,17 @@ QVariant SqlService::insertItem(QString table, QVariantMap map)
     INSERTITEM_SQL.append(")");
     values.append(")");
     INSERTITEM_SQL.append(values);
-
+    qDebug() << INSERTITEM_SQL;
+    qDebug() << values;
     if (!this->prepareSql(INSERTITEM_SQL)) {
-        return false;
+      return false;
     }
     QMapIterator<QString, QString> ii(tableContentMap);
     while (ii.hasNext()) {
         ii.next();
         m_sqlQuery.addBindValue(map[ii.key()]);
     }
+
     this->exec();
     return m_sqlQuery.lastInsertId ();
 
@@ -168,24 +174,36 @@ QVector<QVariantMap> SqlService::getItems()
     return list;
 }
 
-void SqlService::initDb(QString dbname, QString table, QMap<QString, QString> map) {
-    if (openDatabase(dbname))
-        createTable(table, map);
-    else {
-        setLastError(m_sqlDatabase.lastError().text());
-    }
+bool SqlService::initDb(QString dbname, QString table,
+                        QMap<QString, QString> map) {
+  if (openDatabase(dbname))
+    return createTable(table, map);
+  else {
+    setLastError(m_sqlDatabase.lastError().text());
+    return false;
+  }
 }
 
 QMap<QString, QString> SqlService::getTableInfo(QString table)
 {
     QMap<QString, QString> result;
-    const auto GET_TABLE_INFO_SQL = QString(R"(PRAGMA table_info( %1 ))").arg (table);
-
+    const auto GET_TABLE_INFO_SQL =
+        QString(R"(PRAGMA table_info( %1 ))").arg(table);
+    qDebug() << GET_TABLE_INFO_SQL;
     m_sqlQuery.prepare(GET_TABLE_INFO_SQL);
-    if (m_sqlQuery.exec())
-    {
-        for (int i = 0; i < 2; i++)
-            result.insert(m_sqlQuery.record().field(i).name(), m_sqlQuery.record().field(i).value().toString());
+    if (m_sqlQuery.exec()) {
+      //        for (int i = 0; i < 2; i++)
+      //            result.insert(m_sqlQuery.record().field(i).name(),
+      //            m_sqlQuery.record().field(i).value().toString());
+      while (m_sqlQuery.next()) {
+        //        qDebug() << QString(QString::fromLocal8Bit("字段数:%1
+        //        字段名:%2  字段类型:%3"))
+        //                        .arg(query.value(0).toString())
+        //                        .arg(query.value(1).toString())
+        //                        .arg(query.value(2).toString());
+        result.insert(m_sqlQuery.value(1).toString(),
+                      m_sqlQuery.value(2).toString());
+      }
     }
     return result;
 }

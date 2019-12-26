@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
 
     AnimalModel model;
     model.initDb();
-    model.m_insert(0, false, "Wolf", "Medium");
-    model.m_insert(1, true, "Polar bear", "Large");
-    model.m_insert(2, false, "Quoll", "Small");
+    //    model.m_insert(0, false, "Wolf", "Medium");
+    //    model.m_insert(1, true, "Polar bear", "Large");
+    //    model.m_insert(2, false, "Quoll", "Small");
 
     engine.rootContext()->setContextProperty("myModel", &model);
 
