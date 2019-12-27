@@ -28,8 +28,8 @@ public:
     bool updateItem(QString table, QVariantMap map, QString name = "id");
     bool deleteItem(QString table, QVariantMap map);
     QVariantMap findItem(QString table, QVariantMap map);
-    QVector<QVariantMap> getItems(int pageFrom, int pageNum);
-    QVector<QVariantMap> getItems();
+    QList<QVariantMap> getItems(QString table,int pageFrom, int pageNum);
+    QList<QVariantMap> getItems(QString table);
     bool initDb(QString dbname, QString table, QMap<QString, QString> map);
 
     QString getLastErrors() const;

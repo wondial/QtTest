@@ -13,13 +13,14 @@ public:
     explicit AnimalModel(QObject *parent = nullptr);
 
     enum AnimalRoles {
-        TypeRole = Qt::UserRole + 1,
+        IdRole = Qt::UserRole + 1,
+        TypeRole,
         Done,
         SizeRole
     };
 
     //外部接口 QML调用 添加数据
-    Q_INVOKABLE void m_pushdata(const bool &done, const QString &animalType, const QString &animalSize);
+    Q_INVOKABLE void m_pushdata(const int &id,const bool &done, const QString &animalType, const QString &animalSize);
     //外部接口 QML调用 添加数据在指定行
     Q_INVOKABLE void m_insert(int index, const bool &done, const QString &animalType, const QString &animalSize);
     //外部接口 删除指定行

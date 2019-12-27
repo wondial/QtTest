@@ -25,6 +25,10 @@ ColumnLayout {
                 id: displayRow
                 width: parent.width
 
+                Text {
+                    id: idname
+                    text: model.animalid
+                }
                 CheckBox {
                     id: checkdone
                     checked: model.done
