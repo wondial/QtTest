@@ -111,13 +111,8 @@ void AnimalModel::initDb()
     map.insert("size", "varchar");
     map.insert("type", "varchar");
 
-    m_db.initDb(m_dbName, m_table, map);
-    //    if (m_db.initDb(m_dbName, m_table, map)) {
-    //        m_insert(0, false, "Wolf", "Medium");
-    //        m_insert(1, true, "Polar bear", "Large");
-    //        m_insert(2, false, "Quoll", "Small");
-    //    }
-
+    bool b = m_db.initDb(m_dbName, m_table, map);
+    qDebug() << "创建数据库：" << b;
     QList<QVariantMap> list = m_db.getItems(m_table);
     for (int i = 0; i < list.size(); ++i) {
         QMapIterator<QString, QVariant> mi(list.at(i));
