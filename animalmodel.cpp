@@ -47,7 +47,7 @@ void AnimalModel::m_removeOne(int index)
     beginRemoveRows(QModelIndex(), index, index);
     m_animals.removeAt(index);
     endRemoveRows();
-
+    m_animals.takeFirst();
     m_map.insert("animalid", animal.animalId());
     //    m_map.insert("done", animal.done());
     //    m_map.insert("type", animal.animalType());

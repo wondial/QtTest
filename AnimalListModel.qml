@@ -52,7 +52,11 @@ ColumnLayout {
                 Button {
                     text: qsTr("删除")
                     Layout.fillWidth: true
-                    onClicked: myModel.m_removeOne(index)
+                    onClicked:
+                    {
+                        myview.currentIndex = index
+                        myModel.m_removeOne(index)
+                    }
                 }
             }
         }
